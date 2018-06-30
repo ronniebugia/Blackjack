@@ -2,149 +2,142 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+<script src="deck.js"></script>
 <body>
 
 <div class="" style="padding: 64px;">
     <h1>Blackjack</h1>
-    <div id="log"></div>
+    <div style="padding: 12px" id="wins">Wins 0</div>
+    <div style="padding: 12px" id="losses">Losses 0</div>
+    <div style="padding: 12px; width: 500px; border: solid" id="log">Press Start Game to Play</div>
+    <div style="padding: 12px">Player Cards:<div id="playerCards"></div></div>
+    <div style="padding: 12px">Dealer Cards:<div id="dealerCards"></div></div>
+
     <button id="start" onclick="startGame()">Start Game</button>
-    <button id="hit" onclick="hit()" disabled="disabled">Hit</button>
-    <button id="stand" onclick="stand()" disabled="disabled">Stand</button>
+    <button id="hit" onclick="hit()" style="display: none">Hit</button>
+    <button id="stand" onclick="stand()" style="display: none">Stand</button>
     <button id="reset" onclick="reload()">Reset</button>
 </div>
 
 <script>
-var deck = [];
+//Using scripts from deck.js
 var dealt_cards = [];
 var score;
+var playerCards = [];
 var dealerCards = [];
 var dealerScore;
 var space = "<br />";
-
-function generate_deck(){
-    let card = (suit, value, score) => {
-      this.name = value + ' of ' + suit;
-      this.suit = suit;
-      this.value = value;
-      this.score = score;
-
-      return {name:this.name, suit:this.suit, value:this.value, score:this.score}
-    }
-
-    let values = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
-    let score = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 1];
-    let suits = ['Clubs', 'Diamonds', 'Spades', 'Hearts'];
     
+var wins = 0;
+var losses = 0;
 
-    for(let s=0; s < suits.length; s++){
-      for(let v=0; v < values.length; v++){
-        deck.push(card(suits[s], values[v], score[v]));
-      }
-    }
+function displayCard(s, id){
+    var div = document.createElement("div");
+    div.style.width = "100px";
+    div.style.height = "100px";
+    div.style.background = "white";
+    div.style.color = "black";
+    div.innerHTML = s;
+    div.style.border = "solid";
+    div.style.verticalAlign = "middle";
+    div.style.textAlign = "center";
+    div.style.display = "inline-block";
+    div.style.padding = "5px";
+    div.style.position = "relative";
+    document.getElementById(id).appendChild(div);
 }
     
-function deal(){
-      let dealt_card = deck.shift();
-      dealt_cards.push(dealt_card);
-      return dealt_card;
-}
-    
-function shuffle(){
-     let j, x, i;
-     for (i = deck.length - 1; i > 0; i--) {
-         j = Math.floor(Math.random() * (i + 1));
-         x = deck[i];
-         deck[i] = deck[j];
-         deck[j] = x;
-     }
-}
-    
-function clear_deck(){
-  deck = [];
-  dealt_cards = [];
-  dealerCards = [];
-  dealerScore = 0;
-  score = 0;
-}
-    
-var playerCards = [];
-    
-function startGame(){
-    document.getElementById("hit").disabled = false;
-    document.getElementById("stand").disabled = false;
-    document.getElementById("start").disabled = true;
-
-    generate_deck();
-    shuffle();
-    playerCards.push(deal());
-    playerCards.push(deal());
-    score = playerCards[0].score + playerCards[1].score;
-    
-    document.getElementById("log").innerHTML = ("Deck Generated" + space);
-    document.getElementById("log").innerHTML += ("Your cards dealt are " + space);
-    document.getElementById("log").innerHTML += (playerCards[0].name + " and " + playerCards[1].name + " " + space);
-    document.getElementById("log").innerHTML += ("Your score is " + score + space);
-    document.getElementById("log").innerHTML += ("Hit or Stand?" + space);
-}
 function resetGame(){
-    document.getElementById("hit").disabled = true;
-    document.getElementById("stand").disabled = true;
-    document.getElementById("start").disabled = true;    
-    document.getElementById("reset").disabled = false;    
+    clear_deck();
+    playerCards = [];
+    dealt_cards = [];
+    dealerCards = [];
+    dealerScore = 0;
+    score = 0;
+    document.getElementById("hit").style.display = "none";
+    document.getElementById("stand").style.display = "none";
+    document.getElementById("start").style.display = "inline-block";
+    document.getElementById("start").innerHTML = "New Round";
 }
 
 function reload(){
     location.reload();
 }
 
-function hit(){
-    deal_card = deal();
-    document.getElementById("log").innerHTML += ("You have " + deal_card.name + " " + space);
-    playerCards.push(deal_card);
-    score += deal_card.score;
+function writeToLog(s) {
+    document.getElementById("log").innerHTML = s;
+}
 
     
+function startGame(){
+    document.getElementById("hit").style.display = "inline-block"
+    document.getElementById("stand").style.display = "inline-block"
+    document.getElementById("start").style.display = "none"  
+    document.getElementById("playerCards").innerHTML = "";
+    document.getElementById("dealerCards").innerHTML = "";
+    
+    generate_deck();
+    shuffle();
+    playerCards.push(deal());
+    playerCards.push(deal());
+    score = playerCards[0].score + playerCards[1].score;
+    displayCard(playerCards[0].name, "playerCards");
+    displayCard(playerCards[1].name, "playerCards");
+    writeToLog("Your cards are dealt. Hit or Stand?" + space);
+}
+
+function lose(){
+    losses++;
+    document.getElementById("losses").innerHTML = ("Losses " + losses);
+}
+function win(){
+    wins++;
+    document.getElementById("wins").innerHTML = ("Wins " + wins);
+}
+    
+function hit(){
+    deal_card = deal();
+    displayCard(deal_card.name, "playerCards");
+    playerCards.push(deal_card);
+    score += deal_card.score;
+    
+    
     if(score > 21){
-        document.getElementById("log").innerHTML += ("You went over 21 with " + score + space);
-        document.getElementById("log").innerHTML += ("Try Again?");
+        writeToLog("You went over 21 with " + score + space + "Try Again?");
+        lose();
         resetGame();
     }else{
-        document.getElementById("log").innerHTML += ("You have " +  score + space);
-        document.getElementById("log").innerHTML += ("Hit or stand?" + space);
+        writeToLog("You have " +  score + space + "Hit again or stand?" + space);
     }
 
 }
     
 function stand(){
-    document.getElementById("log").innerHTML += ("Dealers Turn..." + space);
     dealerCards.push(deal());
     dealerCards.push(deal());
     dealerScore = dealerCards[0].score + dealerCards[1].score;
-    
-    document.getElementById("log").innerHTML += ("Dealer's cards are " + space);
-    document.getElementById("log").innerHTML += (dealerCards[0].name + " and " + dealerCards[1].name + " " + space);
-    document.getElementById("log").innerHTML += ("Dealer score is " + dealerScore + space);
+    displayCard(dealerCards[0].name, "dealerCards");
+    displayCard(dealerCards[1].name, "dealerCards");
+    writeToLog("Dealers Turn..." + space + "Dealer's cards are " + space + "Dealer score is " + dealerScore + space);
     
     let under21 = true;
     while(under21){
     var temp = deal();
         if(dealerScore > 21){
-            document.getElementById("log").innerHTML += ("Dealer goes over 21. Player wins" + space);
-            document.getElementById("log").innerHTML += ("Play again?" + space);
+            writeToLog("Dealer goes over 21. Player wins" + space + "Play again?" + space);
+            win();
             resetGame();
             under21 = false;
         }else if(dealerScore > score){
-            document.getElementById("log").innerHTML += ("Dealer has " + dealerScore + " and beats your " + score + space);
-            document.getElementById("log").innerHTML += ("Player loses" + space);
-            document.getElementById("log").innerHTML += ("Play again?" + space);
+            writeToLog("Dealer has " + dealerScore + " and beats your " + score + space + "Player loses." + "Play again?" + space);
+            lose();
             resetGame();
             under21 = false;
         }else{
             dealerCards.push(temp);
             dealerScore += temp.score;
-            document.getElementById("log").innerHTML += ("Dealer hits" + space);
-            document.getElementById("log").innerHTML += ("Dealer has " + temp.name + space);
-            document.getElementById("log").innerHTML += ("Dealer score is " + dealerScore + space);
+            writeToLog("Dealer hits" + space + "Dealer score is " + dealerScore + space);
+            displayCard(temp.name, "dealerCards");
         }
         
     }
